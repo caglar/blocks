@@ -345,14 +345,17 @@ class LinearMaxout(Initializable):
         self.output_dim = output_dim
         self.num_pieces = num_pieces
 
-        self.linear_transformation = Linear(
-            name=self.name + '_linear_to_maxout', input_dim=input_dim,
-            output_dim=output_dim * num_pieces, weights_init=self.weights_init,
-            biases_init=self.biases_init, use_bias=self.use_bias)
-        self.maxout_transformation = Maxout(name=self.name + '_maxout',
-                                            num_pieces=num_pieces)
+        self.linear_transformation = Linear(name=self.name +
+                                            '_linear_to_maxout')
+        self.maxout_transformation = Maxout(name=self.name + '_maxout')
         self.children = [self.linear_transformation,
                          self.maxout_transformation]
+
+    def _push_allocation_config(self):
+        self.linear_transformation.input_dim = self.input_dim
+        self.linear_transformation.output_dim = (self.output_dim *
+                                                 self.num_pieces)
+        self.maxout_transformation.num_pieces = self.num_pieces
 
     @application(inputs=['input_'], outputs=['output'])
     def apply(self, input_):
